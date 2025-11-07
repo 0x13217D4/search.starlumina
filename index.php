@@ -28,21 +28,43 @@
         // 初始化背景设置
         document.addEventListener('DOMContentLoaded', function() {
             var backgroundType = localStorage.getItem('backgroundType') || 'bing';
-            if (backgroundType === 'custom') {
+            
+            // 完整的壁纸应用逻辑
+            if (backgroundType === 'bing') {
+                // 使用壁纸缓存管理
+                const cachedWallpaper = localStorage.getItem('wallpaperCache');
+                if (cachedWallpaper) {
+                    const { date, url } = JSON.parse(cachedWallpaper);
+                    const today = new Date().toDateString();
+                    if (date === today) {
+                        document.querySelector('.bgo').style.background = `url(${url})`;
+                        document.querySelector('.bgo').style.backgroundSize = 'cover';
+                        document.body.style.backgroundImage = `url(${url})`;
+                    }
+                } else {
+                    // 如果没有缓存，使用PHP获取的Bing壁纸
+                    document.querySelector('.bgo').style.background = `url('<?php echo $imgurl; ?>')`;
+                    document.querySelector('.bgo').style.backgroundSize = 'cover';
+                    document.body.style.backgroundImage = `url('<?php echo $imgurl; ?>')`;
+                }
+            } else if (backgroundType === 'custom') {
                 var customBgUrl = localStorage.getItem('customBackgroundUrl');
                 if (customBgUrl) {
                     document.querySelector('.bgo').style.background = 'url(' + customBgUrl + ')';
                     document.querySelector('.bgo').style.backgroundSize = 'cover';
+                    document.body.style.backgroundImage = 'url(' + customBgUrl + ')';
                 }
             }
             
-            // 初始化链接打开方式
-            var linkTarget = localStorage.getItem('linkTarget') || '_blank';
-            document.querySelectorAll('.list a').forEach(function(link) {
-                if (!link.getAttribute('href').startsWith('/')) { // 不修改内部链接
-                    link.setAttribute('target', linkTarget);
-                }
-            });
+        // 初始化链接打开方式
+        var linkTarget = localStorage.getItem('linkTarget') || '_blank';
+        // 应用链接打开方式到所有外部链接
+        document.querySelectorAll('a').forEach(function(link) {
+            var href = link.getAttribute('href');
+            if (href && !href.startsWith('/') && !href.startsWith('#')) { // 不修改内部链接和锚点链接
+                link.setAttribute('target', linkTarget);
+            }
+        });
         });
     })();
  </script>
@@ -64,88 +86,141 @@
   <title>星芒起始页 - Star.Lumina</title> 
   <meta name="keywords" content="星芒导航,星芒搜索,星芒搜索导航,星芒,星芒起始页,起始页,搜索导航,首页,浏览器首页,百度,谷歌,谷歌搜索,必应,starlumina.com,快捷导航,浏览器,星芒浏览器">
   <meta name="description" content="最简洁的搜索导航，给你简单舒爽的搜索体验。">
-    <link rel="shortcut icon" href="https://ico.starlumina.com/logo.ico" type="image/x-icon" /> 
-    <link href="/css/style.css" rel="stylesheet" /> 
-    <link href="/css/sousuo.css" rel="stylesheet" /> 
+    <link rel="shortcut icon" href="https://vip.123pan.cn/1832150722/yk6baz03t0n000d7w33gzr20dllunnpiDIYwDqeyDdUvDpxPAdDxDF==.png" type="image/x-icon" /> 
+    <link href="/css/optimized.css" rel="stylesheet" /> 
+    <link href="/css/lazy-load.css" rel="stylesheet" /> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="/js/jquery.min.js"></script> 
   <script src="/js/xd.js" defer async onerror="console.error('Failed to load xd.js')"></script>
+  <script src="/js/lazy-load.js" defer></script>
+  <script src="/js/wallpaper-cache.js" defer></script>
+  <script src="/js/storage-manager.js" defer></script>
+  <script src="/js/search-form.js" defer></script>
+  <script src="/js/navigation-loader.js" defer></script>
+  <script src="/js/settings-manager.js" defer></script>
 
  </head> 
 <?php
-// 获取Bing壁纸作为背景
+// 获取当日Bing壁纸URL
 $url = "https://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN";
 $curl = curl_init($url);
-curl_setopt($curl, CURLOPT_URL, $url);
 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-$headers = array("Accept: application/json");
-curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 $resp = curl_exec($curl);
 curl_close($curl);
 $array = json_decode($resp);
 $imgurl = 'https://cn.bing.com'.$array->{"images"}[0]->{"urlbase"}.'_1920x1080.jpg';
 ?>
- <body style="background-image: url('<?php echo $imgurl; ?>'); background-size: cover; background-position: center; background-attachment: fixed;"> 
+ <body style="background-size: cover; background-position: center; background-attachment: fixed;"> 
 
+  <div id="settings-btn">
+   <i class="fas fa-cog"></i>
+  </div>
   <div id="menu">
-   <i></i>
-  </div> 
-  <div class="list closed"> 
-  <ul>
-    <li class="title"><i class="fas fa-star"></i> 常用</li> 
-        <li><a rel="nofollow" href="https://www.taobao.com" target="_blank"><i class="fab fa-taobao" style="color: #ff6019;"></i>淘宝网</a></li>
-	    <li><a rel="nofollow" href="https://www.jd.com" target="_blank"><i class="fas fa-shopping-cart" style="color: #E31D1A;"></i>京东</a></li>
-	    <li><a rel="nofollow" href="https://www.weibo.com" target="_blank"><i class="fab fa-weibo" style="color: #e6162d;"></i>微博</a></li>
-	    <li><a rel="nofollow" href="https://www.bilibili.com/" target="_blank"><i class="fas fa-play-circle" style="color:#09e;"></i>哔哩哔哩</a></li> 
-	    <li><a rel="nofollow" href="https://fanyi.youdao.com/" target="_blank"><i class="fas fa-language"></i>有道翻译</a></li>
-	    <li><a rel="nofollow" href="https://bigjpg.com/zh" target="_blank"><i class="fas fa-expand" style="color: #00bcff;"></i>JPG放大</a></li>
-	    <li><a rel="nofollow" href="https://www.picdiet.com/zh-cn" target="_blank"><i class="fas fa-compress" style="color:#fcb600"></i>JPG压缩</a></li>
-	    <li><a rel="nofollow" href="https://pan.baidu.com" target="_blank"><i class="fab fa-baidu" style="color: #1371ff;"></i>百度网盘</a></li>
-	    <li><a rel="nofollow" href="https://www.aliyundrive.com/sign/in" target="_blank"><i class="fas fa-cloud-download-alt" style="color: #4bbdff;"></i>阿里云盘</a></li>
-    <li class="title"><i class="fas fa-envelope"></i> 邮箱</li> 
-        <li><a rel="nofollow" href="https://mail.qq.com/" target="_blank"><i class="fab fa-qq" style="color: #f05;"></i>QQ邮箱</a></li>
-        <li><a rel="nofollow" href="https://mail.163.com/" target="_blank"><i class="fas fa-envelope-open-text" style="color: #169;"></i>网易邮箱</a></li> 
-        <li><a rel="nofollow" href="https://www.petalmail.com/#/" target="_blank"><i class="fas fa-envelope" style="color: #4bbdff;"></i>花瓣邮箱</a></li>
-    <li class="title"><i class="fas fa-comments"></i> 论坛</li> 
-       <li><a rel="nofollow" href="https://blog.starlumina.com/" target="_blank"><i class="fas fa-blog" style="color: #f03;"></i>星芒博客</a></li>
-        <li><a rel="nofollow" href="https://www.weibo.com" target="_blank"><i class="fab fa-weibo" style="color: #e6162d;"></i>微博</a></li> 
-        <li><a rel="nofollow" href="https://www.zhihu.com/" target="_blank"><i class="fab fa-zhihu" style="color: #0084ff;"></i>知乎</a></li>
-    <li class="title"><i class="fas fa-photo-video"></i> 媒体</li> 
-        <li><a rel="nofollow" href="https://www.bilibili.com/" target="_blank"><i class="fas fa-play-circle" style="color:#09e;"></i>哔哩哔哩</a></li> 
-        <li><a rel="nofollow" href="https://www.youtube.com/" target="_blank"><i class="fab fa-youtube" style="color:#f03;"></i>Youtube</a></li>
-        <li><a rel="nofollow" href="https://www.douyin.com/" target="_blank"><i class="fas fa-video" style="color:#f03;"></i>抖音</a></li>
-        <li><a rel="nofollow" href="https://www.yhdmz.org/" target="_blank"><i class="fas fa-film" style="color:#f33;"></i>樱花动漫</a></li> 
-        <li><a rel="nofollow" href="https://music.163.com/" target="_blank"><i class="fas fa-music" style="color:#f03;"></i>网易云音乐</a></li> 
-    <li class="title"><i class="fas fa-tools"></i> 工具</li> 
-        <li><a rel="nofollow" href="https://pan.starlumina.com/" target="_blank"><i class="fas fa-download" style="color: #ff6019;"></i>星芒下载站</a></li>
-        <li><a rel="nofollow" href="https://tool.starlumina.com/" target="_blank"><i class="fas fa-toolbox" style="color: #ff6019;"></i>星芒工具箱</a></li>
-        <li><a rel="nofollow" href="https://pan.baidu.com" target="_blank"><i class="fab fa-baidu" style="color: #148bfe;"></i>百度网盘</a></li>
-        <li><a rel="nofollow" href="https://www.aliyundrive.com/sign/in" target="_blank"><i class="fas fa-cloud-download-alt" style="color: #4bbdff;"></i>阿里云盘</a></li>
-        <li><a rel="nofollow" href="https://vocalremover.org/ch/" target="_blank"><i class="fas fa-volume-up" style="color: #4bbdff;"></i>音频编辑</a></li> 
-    <li class="title"><i class="fas fa-code"></i> 开发</li> 
-        <li><a rel="nofollow" href="https://github.com/" target="_blank"><i class="fab fa-github"></i>Github</a></li> 
-        <li><a rel="nofollow" href="https://next.itellyou.cn/" target="_blank"><i class="fab fa-windows" style="color: #48c;"></i>MSDN</a></li> 
-        <li><a rel="nofollow" href="https://ping.pe" target="_blank"><i class="fas fa-network-wired" style="color:#1d0;"></i>Ping.pe</a></li> 
-    <li class="title">AI</li> 
-        <li><a rel="nofollow" href="https://www.deepseek.com/" target="_blank"><i class="fas fa-robot" style="color: #4bbdff;"></i>DeppSeek</a></li>
-        <li><a rel="nofollow" href="https://yuanbao.tencent.com/" target="_blank"><i class="fas fa-robot" style="color: #4bbdff;"></i>腾讯元宝</a></li>
-        <li><a rel="nofollow" href="https://chat.openai.com/" target="_blank"><i class="fas fa-robot" style="color: #4bbdff;"></i>ChatGPT</a></li> 
-        <li><a rel="nofollow" href="https://tongyi.aliyun.com/" target="_blank"><i class="fas fa-robot" style="color: #4bbdff;"></i>通义千问</a></li>
-        <li><a rel="nofollow" href="https://yiyan.baidu.com/" target="_blank"><i class="fas fa-robot" style="color: #4bbdff;"></i>文心一言</a></li> 
-        <li><a rel="nofollow" href="https://www.doubao.com/chat/" target="_blank"><i class="fas fa-robot" style="color: #4bbdff;"></i>豆包</a></li>
-        <li><a rel="nofollow" href="https://deepseek.n.cn/" target="_blank"><i class="fas fa-robot" style="color: #4bbdff;"></i>纳米</a></li>
-    <li class="title"></i>关于本站</li> 
-         <li><a href="/settings.html"><i class="fas fa-cog" style="color: #4bbdff;"></i>系统设置</a></li>
-         <li><a rel="nofollow" href="https://starlumina.com/" target="_blank"><i class="fas fa-info-circle" style="color: #4bbdff;"></i>关于我们</a></li> 
-         <li><a rel="nofollow" href="https://blog.starlumina.com/?post=3" target="_blank"><i class="fas fa-heart" style="color: #4bbdff;"></i>捐助我们</a></li> 
-         <li><a rel="nofollow" href="https://app.starlumina.com/" target="_blank"><i class="fas fa-download" style="color: #4bbdff;"></i>下载客户端</a></li>
-         <li><a rel="nofollow" href="https://blog.starlumina.com/?post=8" target="_blank"><i class="fas fa-bug" style="color: #4bbdff;"></i>漏洞反馈</a></li>
-         <li><a rel="nofollow" href="https://blog.starlumina.com/?post=4" target="_blank"><i class="fas fa-image" style="color: #4bbdff;"></i>背景下载</a></li>
-         <li><a rel="nofollow" href="https://jq.qq.com/?_wv=1027&k=A6wxje1W" target="_blank"><i class="fab fa-qq" style="color: #4bbdff;"></i>官方QQ群</a></li>
-   </ul>  
-  </div> 
+   <div class="windows-icon">
+    <div class="square"></div>
+    <div class="square"></div>
+    <div class="square"></div>
+    <div class="square"></div>
+   </div>
+  </div>
+  <!-- 中间大窗口导航面板 -->
+  <div class="navigation-modal" id="navigation-modal">
+    <div class="navigation-content">
+      <div class="navigation-header">
+        <h3>快捷导航</h3>
+        <button class="close-btn" id="close-navigation">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="navigation-body">
+        <ul id="navigation-menu"></ul>
+      </div>
+    </div>
+  </div>
+  <!-- 遮罩层 -->
+  <div class="modal-overlay" id="modal-overlay"></div>
+  
+  <!-- 设置窗口 -->
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-content">
+      <div class="settings-header">
+        <h3>系统设置</h3>
+        <button class="close-btn" id="close-settings">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="settings-body">
+        <!-- 主题设置 -->
+        <div class="settings-section">
+          <h4>主题设置</h4>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="theme" value="light" id="lightTheme">
+              <span>浅色模式</span>
+            </label>
+            <label>
+              <input type="radio" name="theme" value="dark" id="darkTheme">
+              <span>深色模式</span>
+            </label>
+            <label>
+              <input type="radio" name="theme" value="auto" id="autoTheme">
+              <span>跟随系统</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 链接打开方式 -->
+        <div class="settings-section">
+          <h4>链接打开方式</h4>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="linkTarget" value="_blank" id="newTabOption">
+              <span>新标签页打开</span>
+            </label>
+            <label>
+              <input type="radio" name="linkTarget" value="_self" id="sameTabOption">
+              <span>当前标签页打开</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 背景设置 -->
+        <div class="settings-section">
+          <h4>背景设置</h4>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="background" value="bing" id="bingBackground">
+              <span>必应每日一图</span>
+            </label>
+            <label>
+              <input type="radio" name="background" value="custom" id="customBackground">
+              <span>自定义背景</span>
+            </label>
+          </div>
+          <div id="customBackgroundOptions" style="display: none;">
+            <input type="text" id="backgroundUrlInput" placeholder="输入图片URL">
+            <button id="uploadBackgroundBtn">上传图片</button>
+            <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp">
+            <div class="background-preview" id="backgroundPreview"></div>
+          </div>
+        </div>
+
+        <!-- 设置按钮 -->
+        <div class="settings-section">
+          <div class="settings-buttons">
+            <button id="saveSettings" class="settings-btn save-btn">保存设置</button>
+            <button id="resetSettings" class="settings-btn reset-btn">恢复默认</button>
+          </div>
+        </div>
+
+        <!-- 版本信息 -->
+        <div class="settings-section">
+          <h4>版本信息</h4>
+          <div class="version-info" id="versionInfo">当前版本: <span id="currentVersion">加载中...</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="search" class="s-search">
    <div id="search-list" class="hide-type-list">
     <div class="s-type">
@@ -159,29 +234,29 @@ $imgurl = 'https://cn.bing.com'.$array->{"images"}[0]->{"urlbase"}.'_1920x1080.j
     <div class="search-group group-a">
      <span class="type-text">搜索</span>
      <ul class="search-type">
-      <li><input onclick="bw()" hidden="" type="radio" name="type" id="type-xiaoyi" value="https://xiaoyi.huawei.com/?q=" data-placeholder="小艺智能搜索" checked /><label for="type-xiaoyi"><span style="color: #ffffff;">小艺</span></label></li>
-      <li><input onclick="bw()" hidden="" type="radio" name="type" id="type-search" value="https://www.baidu.com/s?wd=" data-placeholder="百度一下" /><label for="type-search"><span>百度</span></label></li>
-      <li><input onclick="bw()" hidden="" type="radio" name="type" id="type-google" value="https://www.google.com/search?q=" data-placeholder="谷歌搜索" /><label for="type-google"><span>Google</span></label></li>
-      <li><input onclick="bw()" hidden="" type="radio" name="type" id="type-bing" value="https://cn.bing.com/search?q=" data-placeholder="微软Bing搜索" /><label for="type-bing"><span>Bing</span></label></li>
+      <li><input hidden="" type="radio" name="type" id="type-xiaoyi" value="https://xiaoyi.huawei.com/?q=" data-placeholder="小艺智能搜索" checked /><label for="type-xiaoyi"><span style="color: #ffffff;">小艺</span></label></li>
+      <li><input hidden="" type="radio" name="type" id="type-search" value="https://www.baidu.com/s?wd=" data-placeholder="百度一下" /><label for="type-search"><span>百度</span></label></li>
+      <li><input hidden="" type="radio" name="type" id="type-google" value="https://www.google.com/search?q=" data-placeholder="谷歌搜索" /><label for="type-google"><span>Google</span></label></li>
+      <li><input hidden="" type="radio" name="type" id="type-bing" value="https://cn.bing.com/search?q=" data-placeholder="微软Bing搜索" /><label for="type-bing"><span>Bing</span></label></li>
      </ul>
     </div>
     <div class="search-group group-b">
      <span class="type-text">开发</span>
      <ul class="search-type">
-      <li><input onclick="bw()" hidden="" type="radio" name="type" id="type-GitHub" value="https://github.com/search?q=" data-placeholder="GitHub" /><label for="type-GitHub"><span>GitHub</span></label></li>
-      <li><input onclick="bw()" hidden="" type="radio" name="type" id="type-gitee" value="https://so.gitee.com/?q=" data-placeholder="gitee" /><label for="type-gitee"><span>gitee</span></label></li>
-      <li><input onclick="bw()" hidden="" type="radio" name="type" id="type-CSDN" value="https://so.csdn.net/so/search?q=" data-placeholder="CSDN" /><label for="type-CSDN"><span>CSDN</span></label></li>
-      <li><input onclick="bw()" hidden="" type="radio" name="type" id="type-ping" value="https://ping.pe/" data-placeholder="请输入网址" /><label for="type-ping"><span>Ping</span></label></li>
+      <li><input hidden="" type="radio" name="type" id="type-GitHub" value="https://github.com/search?q=" data-placeholder="GitHub" /><label for="type-GitHub"><span>GitHub</span></label></li>
+      <li><input hidden="" type="radio" name="type" id="type-gitee" value="https://so.gitee.com/?q=" data-placeholder="gitee" /><label for="type-gitee"><span>gitee</span></label></li>
+      <li><input hidden="" type="radio" name="type" id="type-CSDN" value="https://so.csdn.net/so/search?q=" data-placeholder="CSDN" /><label for="type-CSDN"><span>CSDN</span></label></li>
+      <li><input hidden="" type="radio" name="type" id="type-ping" value="https://ping.pe/" data-placeholder="请输入网址" /><label for="type-ping"><span>Ping</span></label></li>
 
      </ul>
     </div>
     <div class="search-group group-c">
      <span class="type-text">社区</span>
      <ul class="search-type">
-      <li><input onclick="bw()" hidden="" type="radio" name="type" id="type-zhihu" value="https://www.zhihu.com/search?type=content&amp;q=" data-placeholder="知乎" /><label for="type-zhihu"><span>知乎</span></label></li>
-      <li><input onclick="bw()" hidden="" type="radio" name="type" id="type-weibo" value="http://s.weibo.com/weibo/" data-placeholder="微博" /><label for="type-weibo"><span>微博</span></label></li>
-      <li><input onclick="bw()" hidden="" type="radio" name="type" id="type-快递100" value="http://www.kuaidi100.com/?" data-placeholder="快递100" /><label for="type-快递100"><span>快递100</span></label></li>
-    <li><input onclick="bw()" hidden="" type="radio" name="type" id="type-bili" value="https://search.bilibili.com/all?keyword=" data-placeholder="请输入在Bilibili上想搜索关键词" /><label for="type-bili"><span>哔哩哔哩</span></label></li>
+      <li><input hidden="" type="radio" name="type" id="type-zhihu" value="https://www.zhihu.com/search?type=content&amp;q=" data-placeholder="知乎" /><label for="type-zhihu"><span>知乎</span></label></li>
+      <li><input hidden="" type="radio" name="type" id="type-weibo" value="http://s.weibo.com/weibo/" data-placeholder="微博" /><label for="type-weibo"><span>微博</span></label></li>
+      <li><input hidden="" type="radio" name="type" id="type-快递100" value="http://www.kuaidi100.com/?" data-placeholder="快递100" /><label for="type-快递100"><span>快递100</span></label></li>
+    <li><input hidden="" type="radio" name="type" id="type-bili" value="https://search.bilibili.com/all?keyword=" data-placeholder="请输入在Bilibili上想搜索关键词" /><label for="type-bili"><span>哔哩哔哩</span></label></li>
      </ul>
     </div>
    </div>
@@ -190,42 +265,31 @@ $imgurl = 'https://cn.bing.com'.$array->{"images"}[0]->{"urlbase"}.'_1920x1080.j
     <button type="submit"><i class="fas fa-search"></i></button>
     <ul id="ul" class="ko"></ul>
    </form>
-   <div id="yy" style="display:none;">
-    <input type="text" id="kos" placeholder="<?php echo $word; ?>" />
-    <button type="submit" id="kob"><i class="fas fa-search"></i></button>
-    <ul id="kol" class="ko"></ul>
-   </div>
    <div class="set-check hidden-xs">
     <input type="checkbox" id="set-search-blank" class="bubble-3" autocomplete="off" />
    </div>
   </div> 
-  <script type="text/javascript" src="/js/yyss.js"></script>
   <script type="text/javascript" src="/js/sousuo.js"></script> 
   <script type="text/javascript" src="/js/lianxiang.js"></script> 
-  <div class="bgo"></div> 
- </body>
-
-<div style="position: fixed;width: 100%;height: 30px;line-height: 30px;bottom: 0;left: 0;text-align: center;">
+ <div class="bgo"></div> 
+ <?php 
+ $currentYear = date('Y');
+ ?>
+ <div style="position: fixed;width: 100%;height: 30px;line-height: 30px;bottom: 0;left: 0;text-align: center;">
             <a><?php echo $currentYear; ?></a>
             <a style="color: #fff;">Made by&nbsp;&copy</a>
             <a style="color: #fff;" href="https://starlumina.com/">胡黄成霖</a>
 			<a style="color: #fff;" href="https://beian.miit.gov.cn/" target="_blank">蜀ICP备2024095899号-3</a>
-			<img class="logos" src="https://ico.starlumina.com/备案图标.png"  width="15" height="15" >
+			<img class="logos" src="https://vip.123pan.cn/1832150722/ymjew503t0l000d7w32xfcwa742s0k5lDIYwDqeyDdUvDpxPAdDxDF==.png"  width="15" height="15" >
 			<a style="color: #fff;" href="https://beian.mps.gov.cn/#/query/webSearch?code=51019002007728" rel="noreferrer" target="_blank"> 川公网安备51019002007728号</a>
-			<a style="color: #fff;margin-left: 20px;cursor: pointer;" onclick="jiu()">切换旧版</a>
 			</div>
-</html>
+ </body>
+
 
 
 
 <script>
 
-
-
-function jiu(){
-		setCookie('style',1,30);
-		window.location.href="old/index.html"
-	}
 	
 	function setCookie(name, value, liveMinutes) {
 		if (liveMinutes == undefined || liveMinutes == null) {
@@ -243,29 +307,6 @@ function jiu(){
 
 	
 </script>
-
-
-<script>
-	function getCookie(cname)
-	{
-	  var name = cname + "=";
-	  var ca = document.cookie.split(';');
-	  for(var i=0; i<ca.length; i++) 
-	  {
-	    var c = ca[i].trim();
-	    if (c.indexOf(name)==0) return c.substring(name.length,c.length);
-	  }
-	  return "";
-	}
-	var style=getCookie('style');
-	console.log(style)
-	if(style==1){
-		window.location.href="old/"
-	}
-	
-	
-</script>
-
 
 
 <style>
@@ -307,7 +348,66 @@ function jiu(){
     </script>
     
     
-    <script>
+  <script>
+// 壁纸缓存管理
+function manageWallpaper(imgUrl) {
+    const today = new Date().toDateString();
+    const cached = localStorage.getItem('wallpaperCache');
+    
+    // 如果有缓存且未过期(当天00:00前)，使用缓存
+    if (cached) {
+        const { date, url } = JSON.parse(cached);
+        if (date === today) {
+            applyWallpaper(url);
+            return; // 使用缓存，不继续下载
+        }
+    }
+    
+    // 下载并缓存新壁纸
+    fetch(imgUrl)
+        .then(response => response.blob())
+        .then(blob => {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const wallpaperUrl = this.result;
+                localStorage.setItem('wallpaperCache', JSON.stringify({
+                    date: today,
+                    url: wallpaperUrl
+                }));
+                applyWallpaper(wallpaperUrl);
+            }
+            reader.readAsDataURL(blob);
+        });
+}
+
+function applyWallpaper(url) {
+    const wallpaperElement = document.querySelector('.bgo');
+    wallpaperElement.style.backgroundImage = `url('${url}')`;
+    document.body.style.backgroundImage = `url('${url}')`;
+}
+
+// 初始化壁纸
+const wallpaperElement = document.querySelector('.bgo');
+const img = new Image();
+img.onload = function() {
+    wallpaperElement.classList.add('loaded');
+    manageWallpaper('<?php echo $imgurl; ?>');
+};
+img.onerror = function() {
+    console.log('背景图片加载失败，使用备用背景');
+    wallpaperElement.classList.add('loaded');
+};
+img.src = '<?php echo $imgurl; ?>';
+
+// 每日检查更新
+setInterval(() => {
+    const now = new Date();
+    if (now.getHours() === 0 && now.getMinutes() < 1) {
+        manageWallpaper('<?php echo $imgurl; ?>');
+    }
+}, 60000); // 每分钟检查一次
+
+// 百度统计
 var _hmt = _hmt || [];
 (function() {
   var hm = document.createElement("script");
